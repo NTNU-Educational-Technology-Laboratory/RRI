@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RRI – Robot Robot Interaction</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+</head>
+<body>
+  <div id="particles"></div>
+
+  <div class="chat-container">
+    <h1>🤖 RRI – Robot Robot Interaction</h1>
+
+    <div id="chatbox" class="chatbox"></div>
+
+    <div class="controls">
+      <input id="topic" placeholder="Enter a topic..." />
+      <select id="starter">
+        <option value="nao">NAO starts</option>
+        <option value="reachy">Reachy starts</option>
+      </select>
+      <button onclick="start()">🚀 Start Conversation</button>
+    </div>
+
+    <div class="context-boxes">
+      <div>
+        <label for="nao_context">🤖 NAO Context</label><br />
+        <textarea id="nao_context" rows="4">
+You are NAO, a witty and curious humanoid robot. You speak in short, playful sentences and ask lots of questions. You are talking to Reachy. Respond ONLY as NAO.
+        </textarea>
+      </div>
+      <div>
+        <label for="reachy_context">🦾 Reachy Context</label><br />
+        <textarea id="reachy_context" rows="4">
+You are Reachy, a smart and sarcastic robotic arm. You enjoy teasing NAO, and your responses are a bit ironic but thoughtful. You are talking to NAO. Respond ONLY as Reachy.
+        </textarea>
+      </div>
+    </div>
+
+    <footer>© Mathieu ASTRUC – All rights reserved</footer>
+  </div>
+
+  <script>
+    tsParticles.load("particles", {
+      background: { color: { value: "#031028" } },
+      fpsLimit: 60,
+      interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
+      particles: {
+        color: { value: "#ffffff" },
+        links: { color: "#ffffff", distance: 120, enable: true, opacity: 0.3, width: 1 },
+        move: { enable: true, speed: 1, direction: "none", outMode: "bounce" },
+        number: { value: 50, density: { enable: true, area: 800 } },
+        opacity: { value: 0.4 },
+        shape: { type: "circle" },
+        size: { value: { min: 1, max: 4 } }
+      },
+      detectRetina: true
+    });
+
+    const socket = io();
+
+    socket.on('new_message', (data) => {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = data.speaker === "nao" ? "bubble nao" : "bubble reachy";
+      msgDiv.innerHTML = `<strong>${data.speaker.toUpperCase()}:</strong> ${data.text}`;
+      document.getElementById('chatbox').appendChild(msgDiv);
+      msgDiv.scrollIntoView({ behavior: "smooth" });
+    });
+
+    function start() {
+      const topic = document.getElementById('topic').value;
+      const who = document.getElementById('starter').value;
+      const nao_context = document.getElementById('nao_context').value;
+      const reachy_context = document.getElementById('reachy_context').value;
+
+      socket.emit('start', {
+        topic,
+        who,
+        nao_context,
+        reachy_context
+      });
+
+      document.getElementById('chatbox').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
